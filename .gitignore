@@ -1,0 +1,16 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+reports/*
+!reports/.gitkeep
+.env
+.env.*
+!.env.example
+auth-config*.json
+probe-config*.json
