@@ -1,239 +1,226 @@
-# WebShield AI
+# 🛡️ WebShield AI
 
-WebShield AI is a conservative, local-first command-line tool for authorized web application checks. Its checks and finding prioritizer are deterministic rules; despite the project name, it does **not** use an AI or machine-learning model.
+### An Open-Source Web Application Security Scanner Built with Python
 
-## Scope and limitations
+WebShield AI is a Python-based command-line security scanner designed to help developers assess the security configuration of web applications they own or are explicitly authorized to test.
 
-- The base scan checks one explicitly authorized path. Optional local/private-only features provide same-origin GET-only crawling, standard HTML form authentication, and harmless SQL-error/reflected-input indicators.
-- It does not follow redirects. A `Location` value is reported for manual review.
-- Public targets must use HTTPS on port 443. A local/private target requires the separate `--allow-local` development flag.
-- The hostname must exactly match `--allow-host`. DNS is resolved once, all returned addresses are checked against the selected network policy, and the connection uses a vetted resolved address rather than resolving the hostname again.
-- Responses are bounded to 64 KiB and request timeouts are enforced. Page content, credentials, cookies, CSRF tokens, authorization values, and query values are not included in reports.
-- Crawling, authentication, and SQL/XSS indicator checks are restricted to validated localhost/private targets. Crawling and checks are constrained to explicitly approved path scopes.
-- Header recommendations depend on application design. Missing headers are not proof of an exploitable vulnerability.
-- SQL-error and reflected-input checks are indicators, not proof. They cannot detect every SQL injection or XSS issue; stored/DOM XSS and POST/body parameters are not tested.
-- A passing result does not prove a website is secure. This tool is not a substitute for a professional assessment.
-- Authorization flags are safeguards, not permission and not a complete sandbox. Obtain explicit permission before every scan.
+It provides security-header analysis, TLS checks, bounded web crawling, authentication support, basic SQL injection indicators, passive reflected-input checks, and structured security reports.
 
-## Features
+> **Disclaimer:** WebShield AI is intended for authorized defensive security testing only. Always obtain permission before scanning a target.
 
-- Certificate validity, issuer, subject, expiration, and negotiated TLS version.
-- Checks for HSTS, CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and clickjacking framing policy.
-- Stable finding IDs, evidence, severity, explanations, remediation guidance, and public documentation references.
-- JSON, escaped HTML, and PDF reports.
-- Optional authenticated scans with same-origin POST-based HTML form login, in-memory session cookies, hidden credential prompts/environment variables, and configurable CSRF/success/failure indicators.
-- A bounded same-origin crawler with page/depth/time/rate limits, path allowlists, route exclusions, form inspection, and no form submission.
-- Local/private-only SQL error and reflected-XSS indicators limited to configured GET endpoints and input fields; no active script payloads or destructive SQL.
-- A transparent severity/status rule-based prioritizer. Confidence is not calibrated and no model prediction is used.
-- Explicit authorization confirmation, exact-host matching, DNS/IP scope checks, timeouts, response-size limits, and no redirect following.
+## ✨ Features
 
-## Architecture
+- **Security Header Analysis** — Checks for important HTTP security headers and reports missing configurations.
+- **TLS Checks** — Examines TLS-related security configuration.
+- **Scoped Scanning** — Supports explicit host and path restrictions.
+- **Authentication Support** — Supports configured same-origin HTML form authentication for authorized applications.
+- **Web Crawling** — Discovers same-origin pages within configured crawl limits.
+- **SQL Injection Indicators** — Identifies selected database error indicators; these do not independently confirm SQL injection vulnerabilities.
+- **XSS Indicators** — Performs passive reflected-input checks; reflection alone does not confirm executable XSS.
+- **Finding Prioritization** — Organizes findings by severity using rule-based analysis.
+- **Multiple Report Formats** — Generates JSON, HTML and PDF reports.
+- **Secret Redaction** — Designed to prevent sensitive authentication values from appearing in scan output and reports.
+- **Automated Tests** — Includes tests for important scanner components and safety controls.
 
-- `webshield/scanner.py`: URL authorization, DNS address vetting/pinning, and single-request scanner.
-- `webshield/auth.py`: same-origin HTML form authentication using a pinned `requests` session; TLS verification remains enabled.
-- `webshield/crawler.py`: bounded local/private same-origin discovery and inspection-only forms.
-- `webshield/input_checks.py`: explicitly configured benign SQL error/reflection indicators.
-- `webshield/sqli_checker.py` and `webshield/xss_checker.py`: separate quote-only SQL error and inert reflected-input checks.
-- `webshield/scope.py` and `webshield/redaction.py`: path/origin scope enforcement and report sanitization.
-- `webshield/tls_checker.py`: certificate and TLS metadata checks using system trust roots.
-- `webshield/header_checker.py`: deterministic security-header rules.
-- `webshield/analyzer.py`: finding assembly and explainable deterministic prioritization. There is no trained model or labeled dataset.
-- `webshield/reporter.py`: JSON, HTML, and ReportLab PDF rendering.
-- `webshield/cli.py`: argument validation, progress output, exit codes, and report handling.
+Feature availability and coverage depend on the current implementation and target application. See the limitations section below.
 
-No scan data is sent to an external analysis service. TLS certificate validation is never disabled. Authentication and input indicator checks do not operate on public targets.
+## 🧰 Technology Stack
 
-## Requirements and installation
+- Python
+- Requests
+- HTML parsing libraries used by the project
+- ReportLab for PDF reporting
+- Python unittest for automated tests
 
-Python 3.10 or newer is supported. Python 3.12 is suitable for development. Runtime dependencies are Requests for maintained session/cookie handling and ReportLab for PDF output.
+## 📋 Requirements
 
-### Windows 11 / PowerShell
+- Python 3.12 or a compatible version supported by the project
+- Git
+- Windows PowerShell or Kali Linux
+- Network access to the explicitly authorized target
 
-From the project directory:
+## 🚀 Installation
 
-```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -m webshield.cli --help
-```
-
-If PowerShell blocks activation, invoke the environment's Python directly:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m webshield.cli --help
-```
-
-### Kali Linux
-
-From the project directory:
+### 1. Clone the repository
 
 ```bash
-sudo apt update
-sudo apt install -y python3 python3-venv
+git clone https://github.com/supunsathmika0919-art/WebShield-AI-project.git
+cd WebShield-AI-project
+```
+
+### 2. Create a virtual environment
+
+**Windows PowerShell**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+**Kali Linux**
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -e .
+```
+
+If editable installation is not supported by the current package configuration, install the documented dependencies using `requirements.txt`.
+
+## 🖥️ Usage
+
+### View available commands
+
+```bash
 python -m webshield.cli --help
 ```
 
-Normal scans do not require root privileges. If your Kali environment enforces externally managed Python packages, keep using the project virtual environment rather than installing into system Python.
-
-## Usage
-
-Only scan targets you own or have explicit authorization to test. Replace the example hostname with the exact authorized hostname:
-
-```powershell
-python -m webshield.cli scan https://AUTHORIZED-HOSTNAME/ `
-  --allow-host AUTHORIZED-HOSTNAME `
-  --confirm-authorized `
-  --format json html pdf
-```
-
-Bash equivalent:
+### View scan options
 
 ```bash
-python -m webshield.cli scan https://AUTHORIZED-HOSTNAME/ \
-  --allow-host AUTHORIZED-HOSTNAME \
-  --confirm-authorized \
-  --format json html pdf
-```
-
-Formats are `json`, `html`, and `pdf`; if omitted, only JSON is produced. To choose a report directory, add `--output-dir PATH`. Use `python -m webshield.cli scan --help` for all options. The original script remains a compatibility entry point and accepts the same scan arguments:
-
-```bash
-python webshield.py https://AUTHORIZED-HOSTNAME/ --allow-host AUTHORIZED-HOSTNAME --confirm-authorized
-```
-
-### Locally owned development server
-
-Start a local HTTP server that you own, then authorize its exact hostname and port. This development-only option also allows HTTP and nonstandard ports; it does not change the exact-host or address checks:
-
-```powershell
-python -m http.server 8000 --bind 127.0.0.1
-```
-
-In a second terminal:
-
-```powershell
-python -m webshield.cli scan http://localhost:8000/ `
-  --allow-host localhost `
-  --confirm-authorized `
-  --allow-local `
-  --format json html
-```
-
-The scanner warns when local mode is enabled. The HTTP test server is not a TLS test; its TLS state is reported as not checked.
-
-### Windows XAMPP/PHP
-
-Start Apache in the XAMPP Control Panel and use the application route you own. The exact starting path is authorized; a trailing-slash `--allowed-path` additionally authorizes descendants for crawling:
-
-```powershell
-python -m webshield.cli scan http://localhost/event-registration/admin/dashboard.php `
-  --allow-host localhost `
-  --confirm-authorized `
-  --allow-local `
-  --allowed-path /event-registration/admin/ `
-  --crawl --max-pages 10 --max-depth 2 `
-  --format json html
-```
-
-The crawler only requests pages within the allowed path and excludes common logout, delete, payment, registration, settings, and administrative action routes. It inspects forms but never submits them. A GET endpoint can still have side effects in a poorly designed application, so use a disposable local dataset.
-
-### Optional standard HTML form authentication
-
-Create a local JSON file such as `auth-config.json`. It contains configuration only—not credentials:
-
-```json
-{
-  "login_url": "http://localhost/event-registration/login.php",
-  "username_field": "username",
-  "password_field": "password",
-  "csrf_field": "csrf_token",
-  "success_indicator": "Welcome",
-  "failure_indicator": "Invalid credentials",
-  "username_env": "WEBSHIELD_USERNAME",
-  "password_env": "WEBSHIELD_PASSWORD"
-}
-```
-
-Set only the username environment variable if you prefer a hidden password prompt; omit both to be prompted for both credentials:
-
-```powershell
-$env:WEBSHIELD_USERNAME = Read-Host "Test account username"
-python -m webshield.cli scan http://localhost/event-registration/admin/dashboard.php `
-  --allow-host localhost --confirm-authorized --allow-local `
-  --allowed-path /event-registration/admin/ --auth-config .\auth-config.json
-```
-
-The login URL and form action must be on the exact validated origin, the first form must use POST, and redirects are never followed. A configured success marker must appear in the response body or same-origin redirect destination; a failure marker stops scanning. Hidden inputs are sent as form fields to support CSRF tokens but are never stored in reports. Custom JavaScript login flows may need application-specific configuration and are not automated. CAPTCHA/MFA bypass and access-control bypass are not supported.
-
-### Safe SQL/XSS indicators (local/private targets only)
-
-The local JSON configuration names only approved GET paths and parameter names; do not put secrets or values in it:
-
-```json
-{
-  "endpoints": [
-    {
-      "path": "/event-registration/search.php",
-      "parameters": ["q"]
-    }
-  ]
-}
-```
-
-Run only against your local/private training application and explicitly allow the endpoint path:
-
-```powershell
-python -m webshield.cli scan http://localhost/event-registration/search.php `
-  --allow-host localhost --confirm-authorized --allow-local `
-  --allowed-path /event-registration/ --probe-config .\probe-config.json `
-  --check-sqli --check-xss
-```
-
-The SQL check compares a benign baseline with a quote-only input and looks for common database error text. The reflected-input check sends an inert marker containing markup delimiters; it never sends script/event-handler payloads or executes page content. Results are marked potential/informational and must be manually verified. Stored XSS, DOM XSS, POST/body fields, and unconfigured inputs are skipped. At most 10 endpoints and 10 fields are accepted; one field can generate at most three bounded GET requests across both checks, with a one-second minimum interval.
-
-### Kali Linux VM networking
-
-For an XAMPP host and Kali guest, prefer a host-only/private VM network. Determine the Windows host-only adapter address and authorize that exact private address with `--allow-host`; bind Apache/firewall access only as needed for the isolated test. Use `--allow-local` for the private address, and explicitly allow the application path. Avoid exposing Apache on a bridged/public interface. The extra authenticated, crawler, and SQL/XSS indicator features reject public targets even when the base scanner permits an HTTPS public scan.
-
-## Reports
-
-By default, timestamped reports are written to the workspace's `reports/` directory. Use `--output-dir` to select another directory. Generated reports are excluded from version control by `.gitignore`. JSON, HTML, and PDF reports include target origin, approved paths, timestamp/version, checks performed/skipped, errors, prioritized findings, status, confidence limitations, evidence, remediation, and known limitations. URLs are sanitized and query values are redacted; response bodies, credentials, cookies, authorization headers, and CSRF values are not reported.
-
-## Exit status
-
-- `0`: homepage request completed and requested reports were written (findings may still exist).
-- `1`: homepage request failed; the failure is reported and no successful scan is claimed.
-- `2`: invalid invocation/authorization or report generation failure.
-
-## Troubleshooting
-
-- **Permission confirmation required:** include `--confirm-authorized` only when you have permission.
-- **Hostname does not match:** `--allow-host` must be the exact URL hostname; subdomains are not implicitly included.
-- **Local/private targets are blocked:** use `--allow-local` only for a target you own or are authorized to test.
-- **Public HTTP/nonstandard port rejected:** public scans require HTTPS on port 443.
-- **DNS or connection error:** confirm DNS and network access. The scan does not retry by resolving the name again.
-- **PDF dependency error:** install dependencies in the active virtual environment with `python -m pip install -r requirements.txt`.
-- **Certificate validation error:** inspect the target certificate and local trust store. WebShield does not offer an option to disable certificate verification.
-
-## Legal and ethical use
-
-You are responsible for obtaining written authorization and complying with applicable laws, contracts, and rules of engagement. The confirmation flags do not grant permission and cannot enforce a complete isolation boundary. Do not scan systems without authorization. For a production engagement, define the hostname, allowed request rate, timing, and scope with the system owner first.
-
-## Development and tests
-
-```powershell
-python -m unittest discover -v
-python -m pip check
-python -m webshield.cli --help
 python -m webshield.cli scan --help
 ```
 
-Tests use mocks and local-only mock/training HTTP servers. They do not scan public websites. The rule-based prioritizer is not ML and has no measured precision, recall, F1, or accuracy; confidence labels are explicitly uncalibrated.#   W e b S h i e l d - A I - p r o j e c t  
- 
+### Scan an authorized local application
+
+The following example scans a local application on loopback. Run it only when you own or are authorized to test the target.
+
+```powershell
+python -m webshield.cli scan `
+  http://127.0.0.1/event-registration/ `
+  --allow-host 127.0.0.1 `
+  --confirm-authorized `
+  --allow-local `
+  --allowed-path /event-registration/ `
+  --format json html pdf `
+  --output-dir reports/local-test
+```
+
+This example assumes the application is available at that URL. Adjust the URL and allowed path to match your local test application.
+
+### Optional bounded crawling
+
+Use the crawl option only for an explicitly authorized local/private target:
+
+```powershell
+python -m webshield.cli scan `
+  http://127.0.0.1/event-registration/ `
+  --allow-host 127.0.0.1 `
+  --confirm-authorized `
+  --allow-local `
+  --allowed-path /event-registration/ `
+  --crawl `
+  --max-pages 10 `
+  --max-depth 2 `
+  --format json html pdf `
+  --output-dir reports/crawl-test
+```
+
+### Report formats
+
+WebShield AI supports these output formats:
+
+- `json` — Structured machine-readable findings.
+- `html` — Browser-readable report.
+- `pdf` — Portable report document.
+
+Reports are written to the selected output directory.
+
+## 🧪 Testing
+
+Run the automated tests from the project root:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Tests should be run locally. Test results may change as the project evolves. A passing test suite does not guarantee that every vulnerability can be detected in a real application.
+
+## 📊 Security Findings
+
+Depending on the implementation and scan configuration, findings may include:
+
+- Missing HTTP security headers
+- TLS configuration concerns
+- Server information disclosure
+- SQL database error indicators
+- Reflected input and output-encoding concerns
+- Cookie security configuration issues
+- Redirect and authentication verification limitations
+
+Findings are indicators for further investigation, not a guarantee that a vulnerability is exploitable.
+
+## 🔐 Safety and Authorization
+
+WebShield AI is designed for defensive security assessment.
+
+- Scan only systems you own or have explicit permission to test.
+- Keep scans within the configured hostname and path scope.
+- Use conservative crawl limits and request intervals.
+- Avoid destructive actions and state-changing form submissions.
+- Never commit credentials, API keys, cookies, tokens or private scan reports.
+- Review scan evidence before treating a finding as confirmed.
+- Do not use the scanner to access accounts or data without authorization.
+
+## ⚠️ Current Limitations
+
+- Detection coverage is limited to implemented checks.
+- A missing security header does not automatically mean a site is exploitable.
+- SQL error indicators alone do not prove SQL injection.
+- Reflected input alone does not prove cross-site scripting.
+- Authentication behavior depends on the target application's login form and configuration.
+- Redirects, session expiration and login failures may prevent protected pages from being scanned.
+- Business-logic flaws and vulnerabilities requiring manual testing may not be detected.
+- Rule-based prioritization is not the same as a trained AI/ML model.
+- HTTPS-specific controls must be assessed in an appropriate HTTPS environment.
+
+## 🗺️ Roadmap
+
+- [x] Command-line scanning foundation
+- [x] Security-header checks
+- [x] JSON, HTML and PDF reporting
+- [x] Host and path scope controls
+- [x] Automated unit tests for core components
+- [ ] Improve authenticated scan verification
+- [ ] Improve crawler coverage and diagnostics
+- [ ] Expand safe vulnerability indicators
+- [ ] Improve false-positive evaluation
+- [ ] Add reproducible local integration tests
+- [ ] Evaluate a genuine ML-based analysis module
+
+Roadmap items should be marked complete only after implementation and testing.
+
+## 🤝 Contributing
+
+Contributions, bug reports, testing feedback and documentation improvements are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Make a focused change.
+4. Add or update tests.
+5. Run the test suite.
+6. Submit a pull request with a clear description.
+
+Please do not include real credentials, private target information or sensitive scan reports in issues or pull requests.
+
+## 📄 License
+
+See the [LICENSE](LICENSE) file for the applicable license terms.
+
+## 👨‍💻 Author
+
+**Supun Sathmika**
+
+GitHub: [@supunsathmika0919-art](https://github.com/supunsathmika0919-art)
+
+---
+
+⭐ If you find WebShield AI useful, consider starring the repository and contributing improvements.
+
+**Built for learning, defensive security testing, and safer web applications.**
